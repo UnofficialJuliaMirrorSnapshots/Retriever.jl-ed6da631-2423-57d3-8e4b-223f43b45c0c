@@ -1,6 +1,5 @@
 module Retriever
 
-using Pkg
 using PyCall
 
 export check_for_updates, dataset_names, download
@@ -8,7 +7,12 @@ export install_csv, install_mysql, install_postgres
 export install_sqlite, install_msaccess, install_json
 export install_xml, reset_retriever
 
-@pyimport retriever as rt
+# Create retriever as rt while properly handling precompilation
+# See: https://github.com/JuliaPy/PyCall.jl#using-pycall-from-julia-modules
+const rt = PyNULL()
+function __init__()
+    copy!(rt, pyimport("retriever"))
+end
 
 """
 ```julia
@@ -175,17 +179,6 @@ function install_xml(dataset; table_name::String="{db}_{table}.xml",
                 data_dir=pwd(), debug::Bool=false, use_cache::Bool=true)
     rt.install_xml(dataset, table_name, data_dir, debug, use_cache)
 
-end
-
-"""
-```julia
-    reset_retriever(; scope::String="all")
-```
-
-Remove stored information on scripts, data, and connection
-"""
-function reset_retriever(; scope::String="all")
-    rt.reset_retriever(scope)
 end
 
 end # module
